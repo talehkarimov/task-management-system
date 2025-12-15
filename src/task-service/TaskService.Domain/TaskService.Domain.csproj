@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Entitites\" />
-    <Folder Include="Enums\" />
   </ItemGroup>
 
 </Project>
