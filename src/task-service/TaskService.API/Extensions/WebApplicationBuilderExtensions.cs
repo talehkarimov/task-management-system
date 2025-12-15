@@ -1,6 +1,10 @@
 ﻿using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using TaskService.Application.Commands;
+using TaskService.Application.Interfaces;
 using TaskService.Application.Validators;
+using TaskService.Infrastructure.Persistence;
+using TaskService.Infrastructure.Repositories;
 
 namespace TaskService.API.Extensions
 {
@@ -12,6 +16,13 @@ namespace TaskService.API.Extensions
                 cfg.RegisterServicesFromAssemblyContaining<CreateTaskCommand>());
 
             builder.Services.AddValidatorsFromAssemblyContaining<CreateTaskCommandValidator>();
+
+            builder.Services.AddDbContext<TaskDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+            builder.Services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
+
             return builder;
         }
     }

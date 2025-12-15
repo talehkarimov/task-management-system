@@ -1,11 +1,24 @@
 ﻿using MediatR;
+using TaskService.Application.Interfaces;
+using TaskService.Domain.Entitites;
 
 namespace TaskService.Application.Commands.Handlers;
 
-public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, Guid>
+public class CreateTaskCommandHandler(ITaskRepository taskRepository) : IRequestHandler<CreateTaskCommand, Guid>
 {
-    public Task<Guid> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var task = new TaskItem(
+            request.ProjectId,
+            request.Title,
+            request.Description,
+            request.ReporterUserId,
+            request.AssigneeUserId,
+            request.DueDate,
+            request.Priority);
+
+        await taskRepository.AddAsync(task, cancellationToken);
+
+        return task.Id;
     }
 }

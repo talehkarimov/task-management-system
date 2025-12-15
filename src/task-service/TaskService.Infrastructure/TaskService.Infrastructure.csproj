@@ -8,8 +8,16 @@
 
   <ItemGroup>
     <Folder Include="Messaging\" />
-    <Folder Include="Repositories\" />
-    <Folder Include="Persistence\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.22" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.22" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TaskService.Application\TaskService.Application.csproj" />
+    <ProjectReference Include="..\TaskService.Domain\TaskService.Domain.csproj" />
   </ItemGroup>
 
 </Project>
