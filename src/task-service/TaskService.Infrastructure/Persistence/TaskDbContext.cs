@@ -7,6 +7,7 @@ public class TaskDbContext : DbContext
 {
     public DbSet<TaskItem> Tasks => Set<TaskItem>();
     public DbSet<TaskComment> TaskComments => Set<TaskComment>();
+    public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
 
     public TaskDbContext(DbContextOptions<TaskDbContext> options)
         : base(options)

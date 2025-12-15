@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using TaskService.Application.Exceptions;
 using TaskService.Application.Interfaces;
 
 namespace TaskService.Application.Commands.Handlers;
@@ -8,17 +9,9 @@ public class ChangeTaskStatusHandler(ITaskRepository taskRepository) : IRequestH
     public async Task Handle(ChangeTaskStatusCommand request, CancellationToken cancellationToken)
     {
         var task = await taskRepository.GetByIdAsync(request.TaskId, cancellationToken);
-        if (task is null)
-        {
-            throw new InvalidOperationException(
-                $"Task with ID '{request.TaskId}' was not found.");
-        }
+        if (task is null) throw new NotFoundException($"Task with ID '{request.TaskId}' was not found.");
 
-        if (task.Status == Domain.Enums.TaskStatus.Done)
-        {
-            throw new InvalidOperationException(
-                "Completed task cannot be changed.");
-        }
+        if (task.Status == Domain.Enums.TaskStatus.Done) throw new BusinessRuleViolationException("Completed task cannot be changed.");
 
         task.ChangeStatus(request.NewStatus);
         await taskRepository.UpdateAsync(task, cancellationToken);

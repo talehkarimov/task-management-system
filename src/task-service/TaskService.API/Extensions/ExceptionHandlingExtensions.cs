@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Diagnostics;
+using TaskService.Application.Exceptions;
 
 namespace TaskService.API.Extensions;
 
@@ -12,10 +14,11 @@ public static class ExceptionHandlingExtensions
             {
                 context.Response.ContentType = "application/json";
                 var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
-
                 context.Response.StatusCode = exception switch
                 {
-                    InvalidOperationException => StatusCodes.Status409Conflict,
+                    NotFoundException => StatusCodes.Status404NotFound,
+                    ValidationException => StatusCodes.Status400BadRequest,
+                    BusinessRuleViolationException => StatusCodes.Status409Conflict,
                     _ => StatusCodes.Status500InternalServerError
                 };
 
