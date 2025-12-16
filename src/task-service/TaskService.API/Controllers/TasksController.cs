@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TaskService.API.Models;
 using TaskService.Application.Commands;
+using TaskService.Application.Queries;
 
 namespace TaskService.API.Controllers;
 
@@ -14,6 +15,42 @@ public class TasksController : ControllerBase
     public TasksController(IMediator mediator)
     {
         _mediator = mediator;
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(
+            new GetTaskByIdQuery(id), ct);
+
+        return Ok(result);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetByProject(
+        [FromQuery] Guid projectId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(
+            new GetTasksByProjectQuery(projectId, page, pageSize), ct);
+
+        return Ok(result);
+    }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> Search(
+        [FromQuery] string term,
+        [FromQuery] Guid? projectId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(
+            new SearchTasksQuery(term, projectId, page, pageSize), ct);
+
+        return Ok(result);
     }
 
     [HttpPost]

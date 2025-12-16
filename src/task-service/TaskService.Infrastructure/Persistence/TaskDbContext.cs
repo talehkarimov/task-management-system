@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TaskService.Application.Interfaces;
 using TaskService.Domain.Entitites;
 
 namespace TaskService.Infrastructure.Persistence;
 
-public class TaskDbContext : DbContext
+public class TaskDbContext : DbContext, ITaskReadDbContext
 {
     public DbSet<TaskItem> Tasks => Set<TaskItem>();
     public DbSet<TaskComment> TaskComments => Set<TaskComment>();
@@ -28,5 +29,17 @@ public class TaskDbContext : DbContext
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Content).HasMaxLength(2000).IsRequired();
         });
+
+        modelBuilder.Entity<TaskItem>()
+            .HasIndex(t => t.ProjectId);
+
+        modelBuilder.Entity<TaskItem>()
+            .HasIndex(t => t.Status);
+
+        modelBuilder.Entity<TaskItem>()
+            .HasIndex(t => t.CreatedAt);
+
+        modelBuilder.Entity<TaskItem>()
+            .HasIndex(t => t.Title);
     }
 }

@@ -5,6 +5,7 @@ using TaskService.Application.Behaviors;
 using TaskService.Application.Commands;
 using TaskService.Application.Interfaces;
 using TaskService.Application.Validators;
+using TaskService.Infrastructure.Caching;
 using TaskService.Infrastructure.Idempotency;
 using TaskService.Infrastructure.Persistence;
 using TaskService.Infrastructure.Repositories;
@@ -38,9 +39,12 @@ namespace TaskService.API.Extensions
 
             builder.Services.AddScoped<IIdempotencyService, IdempotencyService>();
 
-            builder.Services.AddTransient(
-                typeof(IPipelineBehavior<,>),
-                typeof(IdempotencyBehavior<,>));
+            builder.Services.AddTransient(typeof(IPipelineBehavior<,>),typeof(IdempotencyBehavior<,>));
+
+            builder.Services.AddScoped<ITaskReadDbContext>(provider => provider.GetRequiredService<TaskDbContext>());
+
+            builder.Services.AddMemoryCache();
+            builder.Services.AddScoped<ICacheService, InMemoryCacheService>();
 
             return builder;
         }

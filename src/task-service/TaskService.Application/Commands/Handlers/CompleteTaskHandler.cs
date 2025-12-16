@@ -1,10 +1,11 @@
 ﻿using MediatR;
+using TaskService.Application.Common;
 using TaskService.Application.Exceptions;
 using TaskService.Application.Interfaces;
 
 namespace TaskService.Application.Commands.Handlers;
 
-public class CompleteTaskHandler(ITaskRepository taskRepository) : IRequestHandler<CompleteTaskCommand>
+public class CompleteTaskHandler(ITaskRepository taskRepository, ICacheService cache) : IRequestHandler<CompleteTaskCommand>
 {
     public async Task Handle(CompleteTaskCommand request, CancellationToken cancellationToken)
     {
@@ -15,5 +16,6 @@ public class CompleteTaskHandler(ITaskRepository taskRepository) : IRequestHandl
 
         task.Complete();
         await taskRepository.UpdateAsync(task, cancellationToken);
+        await cache.RemoveAsync(CacheKeys.TaskById(task.Id), cancellationToken);
     }
 }
