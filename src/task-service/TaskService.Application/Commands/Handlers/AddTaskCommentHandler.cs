@@ -1,18 +1,24 @@
 ﻿using MediatR;
+using TaskService.Application.Events;
 using TaskService.Application.Interfaces;
 using TaskService.Domain.Entitites;
 
 namespace TaskService.Application.Commands.Handlers;
 
-public class AddTaskCommentHandler(ITaskCommentRepository taskCommentRepository) : IRequestHandler<AddTaskCommentCommand>
+public class AddTaskCommentHandler(ITaskCommentRepository taskCommentRepository, IDomainEventDispatcher eventDispatcher) : IRequestHandler<AddTaskCommentCommand>
 {
-    public Task Handle(AddTaskCommentCommand request, CancellationToken cancellationToken)
+    public async Task Handle(AddTaskCommentCommand request, CancellationToken cancellationToken)
     {
         var comment = new TaskComment(
             request.TaskId,
             request.UserId,
             request.Content);
 
-        return taskCommentRepository.AddAsync(comment, cancellationToken);
+        await taskCommentRepository.AddAsync(comment, cancellationToken);
+
+        await eventDispatcher.DispatchAsync(
+            new TaskCommentAddedEvent(comment.TaskId, comment.Content, comment.UserId),
+            cancellationToken
+        );
     }
 }

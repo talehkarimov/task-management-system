@@ -1,11 +1,12 @@
 ﻿using MediatR;
 using TaskService.Application.Common;
+using TaskService.Application.Events;
 using TaskService.Application.Exceptions;
 using TaskService.Application.Interfaces;
 
 namespace TaskService.Application.Commands.Handlers;
 
-public class ChangeTaskStatusHandler(ITaskRepository taskRepository, ICacheService cache) : IRequestHandler<ChangeTaskStatusCommand>
+public class ChangeTaskStatusHandler(ITaskRepository taskRepository, ICacheService cache, IDomainEventDispatcher eventDispatcher) : IRequestHandler<ChangeTaskStatusCommand>
 {
     public async Task Handle(ChangeTaskStatusCommand request, CancellationToken cancellationToken)
     {
@@ -16,6 +17,12 @@ public class ChangeTaskStatusHandler(ITaskRepository taskRepository, ICacheServi
 
         task.ChangeStatus(request.NewStatus);
         await taskRepository.UpdateAsync(task, cancellationToken);
+
+        await eventDispatcher.DispatchAsync(
+            new TaskStatusChangedEvent(task.Id, task.Status, request.ChangedByUserId),
+            cancellationToken
+        );
+
         await cache.RemoveAsync(CacheKeys.TaskById(task.Id), cancellationToken);
     }
 }

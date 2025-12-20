@@ -1,11 +1,12 @@
 ﻿using MediatR;
 using TaskService.Application.Common;
+using TaskService.Application.Events;
 using TaskService.Application.Exceptions;
 using TaskService.Application.Interfaces;
 
 namespace TaskService.Application.Commands.Handlers;
 
-    public class AssignTaskHandler(ITaskRepository taskRepository, ICacheService cache) : IRequestHandler<AssignTaskCommand>
+    public class AssignTaskHandler(ITaskRepository taskRepository, ICacheService cache, IDomainEventDispatcher eventDispatcher) : IRequestHandler<AssignTaskCommand>
     {
         public async Task Handle(AssignTaskCommand request, CancellationToken cancellationToken)
         {
@@ -16,6 +17,12 @@ namespace TaskService.Application.Commands.Handlers;
 
             task.Assign(request.AssigneeUserId);
             await taskRepository.UpdateAsync(task, cancellationToken);
-            await cache.RemoveAsync(CacheKeys.TaskById(task.Id), cancellationToken);
+
+            await eventDispatcher.DispatchAsync(
+                new TaskAssignedEvent(task.Id, task.AssigneeUserId.Value, request.ChangedByUserId),
+                cancellationToken
+            );
+
+        await cache.RemoveAsync(CacheKeys.TaskById(task.Id), cancellationToken);
         }
     }

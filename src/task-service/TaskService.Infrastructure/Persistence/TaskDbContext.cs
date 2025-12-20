@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TaskService.Application.Interfaces;
 using TaskService.Domain.Entitites;
+using TaskService.Infrastructure.Outbox;
 
 namespace TaskService.Infrastructure.Persistence;
 
@@ -9,7 +10,7 @@ public class TaskDbContext : DbContext, ITaskReadDbContext
     public DbSet<TaskItem> Tasks => Set<TaskItem>();
     public DbSet<TaskComment> TaskComments => Set<TaskComment>();
     public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
-
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public TaskDbContext(DbContextOptions<TaskDbContext> options)
         : base(options)
     {

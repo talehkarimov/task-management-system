@@ -1,10 +1,11 @@
 ﻿using MediatR;
+using TaskService.Application.Events;
 using TaskService.Application.Interfaces;
 using TaskService.Domain.Entitites;
 
 namespace TaskService.Application.Commands.Handlers;
 
-public class CreateTaskCommandHandler(ITaskRepository taskRepository) : IRequestHandler<CreateTaskCommand, Guid>
+public class CreateTaskCommandHandler(ITaskRepository taskRepository, IDomainEventDispatcher eventDispatcher) : IRequestHandler<CreateTaskCommand, Guid>
 {
     public async Task<Guid> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
     {
@@ -18,6 +19,17 @@ public class CreateTaskCommandHandler(ITaskRepository taskRepository) : IRequest
             request.Priority);
 
         await taskRepository.AddAsync(task, cancellationToken);
+
+        await eventDispatcher.DispatchAsync(
+            new TaskCreatedEvent(task.ProjectId, 
+            task.Title, 
+            task.Description,
+            task.ReporterUserId,
+            task.AssigneeUserId,
+            task.DueDate,
+            task.Priority), 
+            cancellationToken
+        );
 
         return task.Id;
     }
