@@ -3,6 +3,7 @@ using TaskService.API.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.RegisterSerilog();
 builder.RegisterServices();
 
 builder.Services.AddControllers();
@@ -13,6 +14,8 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<RequestLoggingMiddleware>();
+
 app.UseGlobalExceptionHandling();
 
 // Configure the HTTP request pipeline.
@@ -25,5 +28,6 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();

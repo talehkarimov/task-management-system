@@ -2,6 +2,7 @@
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using TaskService.Application.Behaviors;
 using TaskService.Application.Commands;
 using TaskService.Application.Interfaces;
@@ -18,6 +19,11 @@ namespace TaskService.API.Extensions
     {
         public static WebApplicationBuilder RegisterServices(this WebApplicationBuilder builder)
         {
+            builder.Services.AddHealthChecks()
+                .AddDbContextCheck<TaskDbContext>(
+                    name: "db")
+                .AddCheck<TaskService.Infrastructure.Health.OutboxHealthCheck>(
+                    name: "outbox");
             builder.Services.AddMassTransit(x =>
             {
                 x.UsingRabbitMq((context, cfg) =>
@@ -59,6 +65,25 @@ namespace TaskService.API.Extensions
 
             builder.Services.AddScoped<IDomainEventDispatcher, OutboxDomainEventDispatcher>();
             builder.Services.AddHostedService<OutboxProcessor>();
+
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<IRequestContext, Context.HttpRequestContext>();
+
+
+            return builder;
+        }
+        public static WebApplicationBuilder RegisterSerilog(this WebApplicationBuilder builder)
+        {
+            builder.Host.UseSerilog((context, services, configuration) =>
+            {
+                configuration
+                    .ReadFrom.Configuration(context.Configuration)
+                    .ReadFrom.Services(services)
+                    .Enrich.FromLogContext()
+                    .Enrich.WithProperty(
+                        "ServiceName",
+                        context.HostingEnvironment.ApplicationName);
+            });
 
             return builder;
         }

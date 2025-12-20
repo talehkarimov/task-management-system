@@ -42,5 +42,11 @@ public class TaskDbContext : DbContext, ITaskReadDbContext
 
         modelBuilder.Entity<TaskItem>()
             .HasIndex(t => t.Title);
+
+        modelBuilder.Entity<OutboxMessage>()
+            .HasIndex(x => x.ProcessedAt);
+
+        modelBuilder.Entity<OutboxMessage>()
+            .HasIndex(x => x.CreatedAt);
     }
 }

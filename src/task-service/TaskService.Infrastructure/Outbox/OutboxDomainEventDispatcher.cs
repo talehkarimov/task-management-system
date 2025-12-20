@@ -5,7 +5,7 @@ using TaskService.Infrastructure.Persistence;
 
 namespace TaskService.Infrastructure.Outbox;
 
-public sealed class OutboxDomainEventDispatcher(TaskDbContext dbContext) : IDomainEventDispatcher
+public sealed class OutboxDomainEventDispatcher(TaskDbContext dbContext, IRequestContext context) : IDomainEventDispatcher
 {
     public async Task DispatchAsync(IDomainEvent domainEvent, CancellationToken cancellationToken)
     {
@@ -14,7 +14,11 @@ public sealed class OutboxDomainEventDispatcher(TaskDbContext dbContext) : IDoma
             Id = Guid.NewGuid(),
             Type = domainEvent.GetType().AssemblyQualifiedName!,
             Payload = JsonSerializer.Serialize(domainEvent),
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.Now,
+            CorrelationId = context.CorrelationId,
+            UserId = context.UserId,
+            OrganizationId = context.OrganizationId,
+            AttemptCount = 0
         };
         dbContext.OutboxMessages.Add(outboxMessage);
         await dbContext.SaveChangesAsync(cancellationToken);

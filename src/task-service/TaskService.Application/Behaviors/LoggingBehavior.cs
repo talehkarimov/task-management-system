@@ -1,16 +1,20 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
+using Serilog.Context;
+using System.Diagnostics;
+using TaskService.Application.Common;
+using TaskService.Application.Interfaces;
 
 namespace TaskService.Application.Behaviors;
 
 public sealed class LoggingBehavior<TRequest, TResponse>
     : IPipelineBehavior<TRequest, TResponse>
 {
-    private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger;
+    private readonly IRequestContext _context;
 
-    public LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
+    public LoggingBehavior(IRequestContext context)
     {
-        _logger = logger;
+        _context = context;
     }
 
     public async Task<TResponse> Handle(
@@ -18,17 +22,37 @@ public sealed class LoggingBehavior<TRequest, TResponse>
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation(
-            "Handling command {CommandName} with data {@Command}",
-            typeof(TRequest).Name,
-            request);
+        var requestName = typeof(TRequest).Name;
+        var sw = Stopwatch.StartNew();
 
-        var response = await next();
+        using (LogContext.PushProperty(LogKeys.RequestName, requestName))
+        using (LogContext.PushProperty(LogKeys.CorrelationId, _context.CorrelationId))
+        using (LogContext.PushProperty(LogKeys.UserId, _context.UserId))
+        using (LogContext.PushProperty(LogKeys.OrganizationId, _context.OrganizationId))
+        {
+            Serilog.Log.Information("Handling request");
 
-        _logger.LogInformation(
-            "Command {CommandName} handled successfully",
-            typeof(TRequest).Name);
+            try
+            {
+                var response = await next();
+                sw.Stop();
 
-        return response;
+                using (LogContext.PushProperty(LogKeys.ElapsedMs, sw.ElapsedMilliseconds))
+                {
+                    Serilog.Log.Information("Request handled");
+                }
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                sw.Stop();
+                using (LogContext.PushProperty(LogKeys.ElapsedMs, sw.ElapsedMilliseconds))
+                {
+                    Serilog.Log.Error(ex, "Request failed");
+                }
+                throw;
+            }
+        }
     }
 }
