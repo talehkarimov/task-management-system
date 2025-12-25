@@ -1,10 +1,10 @@
 # Documentation Index
 
 ## Architecture
-- architecture/overview.md
+- [System Architecture Overview](architecture/overview.md)
 
 ## Business
-- business/task-management.md
+- [Task Management – Business Rules](business/task-management.md)
 
 ## Decisions
-- decisions/001-authentication.md
+- [001 – Authentication Strategy](decisions/001-authentication.md)
