@@ -24,7 +24,11 @@ public sealed class OutboxHealthCheck(TaskDbContext dbContext) : IHealthCheck
         };
 
         if (stuck > 0)
-            return HealthCheckResult.Degraded("Outbox has stuck messages.", data: data);
+        {
+            return HealthCheckResult.Degraded(
+                "Poisoned outbox messages detected",
+                data: data);
+        }
 
         return HealthCheckResult.Healthy("Outbox is healthy.", data: data);
     }

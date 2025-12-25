@@ -12,10 +12,6 @@ namespace TaskService.Infrastructure.Outbox;
 
 public sealed class OutboxProcessor(IServiceProvider serviceProvider) : BackgroundService
 {
-    private const int BatchSize = 20;
-    private const int DelayMs = 1000;
-    private const int StuckAttemptThreshold = 10;
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -25,14 +21,14 @@ public sealed class OutboxProcessor(IServiceProvider serviceProvider) : Backgrou
             var bus = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
 
             var messages = await dbContext.OutboxMessages
-                .Where(m => m.ProcessedAt == null)
+                .Where(m => m.ProcessedAt == null && m.AttemptCount < OutboxPolicy.MaxAttempts)
                 .OrderBy(m => m.CreatedAt)
-                .Take(BatchSize)
+                .Take(OutboxPolicy.BatchSize)
                 .ToListAsync(stoppingToken);
 
             if (messages.Count == 0)
             {
-                await Task.Delay(DelayMs, stoppingToken);
+                await Task.Delay(1000, stoppingToken);
                 continue;
             }
 
@@ -45,11 +41,6 @@ public sealed class OutboxProcessor(IServiceProvider serviceProvider) : Backgrou
                 using (LogContext.PushProperty(LogKeys.OrganizationId, message.OrganizationId))
                 using (LogContext.PushProperty(LogKeys.OutboxAttempt, message.AttemptCount))
                 {
-                    if (message.AttemptCount >= StuckAttemptThreshold)
-                    {
-                        Serilog.Log.Warning("Outbox message is potentially stuck (attempt threshold reached)");
-                    }
-
                     Type? eventType = null;
                     object? domainEvent = null;
                     try
@@ -57,33 +48,28 @@ public sealed class OutboxProcessor(IServiceProvider serviceProvider) : Backgrou
                         eventType = Type.GetType(message.Type);
                         if (eventType is null)
                         {
-                            message.AttemptCount++;
-                            message.LastError = $"Type resolution failed: {message.Type}";
-                            Serilog.Log.Warning("Outbox publish skipped: event type not found");
+                            Poison(message, $"Event type not found: {message.Type}");
                             continue;
                         }
 
                         domainEvent = JsonSerializer.Deserialize(message.Payload, eventType);
                         if (domainEvent is null)
                         {
-                            message.AttemptCount++;
-                            message.LastError = $"Deserialization returned null for type: {message.Type}";
-                            Serilog.Log.Warning("Outbox publish skipped: deserialization produced null");
+                            Poison(message, "Deserialization returned null");
                             continue;
                         }
 
                         await bus.Publish(domainEvent, publishContext =>
                         {
-                            if (!string.IsNullOrWhiteSpace(message.CorrelationId))
-                                publishContext.Headers.Set("X-Correlation-Id", message.CorrelationId);
+                            publishContext.Headers.Set("X-Outbox-Message-Id", message.Id.ToString());
+                            publishContext.Headers.Set("X-Correlation-Id", message.CorrelationId);
 
                             if (message.UserId.HasValue)
                                 publishContext.Headers.Set("X-User-Id", message.UserId.Value.ToString());
-
+                            
                             if (message.OrganizationId.HasValue)
                                 publishContext.Headers.Set("X-Org-Id", message.OrganizationId.Value.ToString());
 
-                            publishContext.Headers.Set("X-Outbox-Message-Id", message.Id.ToString());
                         }, stoppingToken);
 
                         message.ProcessedAt = DateTime.Now;
@@ -97,12 +83,24 @@ public sealed class OutboxProcessor(IServiceProvider serviceProvider) : Backgrou
                         message.LastError = ex.Message;
 
                         Serilog.Log.Error(ex, "Outbox message publish failed");
+
+                        await Task.Delay(
+                           OutboxPolicy.FailureBackoffMs,
+                           stoppingToken);
                     }
                 }
             }
 
             await dbContext.SaveChangesAsync(stoppingToken);
-            await Task.Delay(DelayMs, stoppingToken);
         }
+    }
+
+    private static void Poison(OutboxMessage message, string reason)
+    {
+        message.AttemptCount = OutboxPolicy.MaxAttempts;
+        message.LastError = reason;
+
+        Serilog.Log.Fatal(
+            "Outbox message poisoned and will no longer be retried");
     }
 }
