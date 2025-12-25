@@ -1,12 +1,13 @@
 ﻿namespace TaskService.Application.Events;
 
-public sealed class TaskBlockedEvent : IDomainEvent
+public sealed class TaskBlockedEventV1 : IDomainEvent
 {
     public Guid TaskId { get; }
     public string Reason { get; }
     public Guid ChangedByUserId { get; }
     public DateTime OccurredOn { get; }
-    public TaskBlockedEvent(Guid taskId,
+    public Guid EventId { get; }
+    public TaskBlockedEventV1(Guid taskId,
         string reason,
         Guid changedByUserId)
     {
@@ -14,5 +15,6 @@ public sealed class TaskBlockedEvent : IDomainEvent
         Reason = reason;
         ChangedByUserId = changedByUserId;
         OccurredOn = DateTime.Now;
+        EventId = Guid.NewGuid();
     }
 }

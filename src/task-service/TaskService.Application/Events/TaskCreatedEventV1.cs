@@ -2,7 +2,7 @@
 
 namespace TaskService.Application.Events;
 
-public sealed class TaskCreatedEvent : IDomainEvent
+public sealed class TaskCreatedEventV1 : IDomainEvent
 {
     public Guid ProjectId { get; }
     public string Title { get; }
@@ -12,8 +12,9 @@ public sealed class TaskCreatedEvent : IDomainEvent
     public DateTime? DueDate { get; }
     public TaskPriority Priority { get; }
     public DateTime OccurredOn { get; }
+    public Guid EventId { get; }
 
-    public TaskCreatedEvent(Guid projectId,
+    public TaskCreatedEventV1(Guid projectId,
     string title,
     string? description,
     Guid reporterUserId,
@@ -29,5 +30,6 @@ public sealed class TaskCreatedEvent : IDomainEvent
         DueDate = dueDate;
         Priority = priority;
         OccurredOn = DateTime.Now;
+        EventId = Guid.NewGuid();
     }
 }

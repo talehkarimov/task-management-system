@@ -19,7 +19,7 @@ public class CompleteTaskHandler(ITaskRepository taskRepository, ICacheService c
         await taskRepository.UpdateAsync(task, cancellationToken);
 
         await eventDispatcher.DispatchAsync(
-            new TaskCompletedEvent(task.Id, request.CompletedByUserId),
+            new TaskCompletedEventV1(task.Id, request.CompletedByUserId),
             cancellationToken
         );
 

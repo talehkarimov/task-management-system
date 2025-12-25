@@ -21,7 +21,7 @@ public class CreateTaskCommandHandler(ITaskRepository taskRepository, IDomainEve
         await taskRepository.AddAsync(task, cancellationToken);
 
         await eventDispatcher.DispatchAsync(
-            new TaskCreatedEvent(task.ProjectId, 
+            new TaskCreatedEventV1(task.ProjectId, 
             task.Title, 
             task.Description,
             task.ReporterUserId,

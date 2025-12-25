@@ -18,7 +18,7 @@ public class BlockTaskHandler(ITaskRepository taskRepository, ICacheService cach
         await taskRepository.UpdateAsync(task, cancellationToken);
 
         await eventDispatcher.DispatchAsync(
-            new TaskBlockedEvent(task.Id, request.Reason, request.ChangedByUserId),
+            new TaskBlockedEventV1(task.Id, request.Reason, request.ChangedByUserId),
             cancellationToken
         );
 

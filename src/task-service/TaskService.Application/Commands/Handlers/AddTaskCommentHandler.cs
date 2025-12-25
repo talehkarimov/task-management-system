@@ -17,7 +17,7 @@ public class AddTaskCommentHandler(ITaskCommentRepository taskCommentRepository,
         await taskCommentRepository.AddAsync(comment, cancellationToken);
 
         await eventDispatcher.DispatchAsync(
-            new TaskCommentAddedEvent(comment.TaskId, comment.Content, comment.UserId),
+            new TaskCommentAddedEventV1(comment.TaskId, comment.Content, comment.UserId),
             cancellationToken
         );
     }

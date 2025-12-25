@@ -19,7 +19,7 @@ namespace TaskService.Application.Commands.Handlers;
             await taskRepository.UpdateAsync(task, cancellationToken);
 
             await eventDispatcher.DispatchAsync(
-                new TaskAssignedEvent(task.Id, task.AssigneeUserId.Value, request.ChangedByUserId),
+                new TaskAssignedEventV1(task.Id, task.AssigneeUserId.Value, request.ChangedByUserId),
                 cancellationToken
             );
 

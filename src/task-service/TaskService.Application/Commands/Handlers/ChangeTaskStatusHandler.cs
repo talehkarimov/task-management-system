@@ -19,7 +19,7 @@ public class ChangeTaskStatusHandler(ITaskRepository taskRepository, ICacheServi
         await taskRepository.UpdateAsync(task, cancellationToken);
 
         await eventDispatcher.DispatchAsync(
-            new TaskStatusChangedEvent(task.Id, task.Status, request.ChangedByUserId),
+            new TaskStatusChangedEventV1(task.Id, task.Status, request.ChangedByUserId),
             cancellationToken
         );
 
