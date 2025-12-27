@@ -18,11 +18,7 @@ public sealed class UserNotificationPreferenceProvider(NotificationDbContext con
             .FirstOrDefaultAsync(ct);
 
         return preference ??
-               new UserNotificationPreference
-               {
-                   UserId = userId,
-                   InAppEnabled = true,
-                   EmailEnabled = false
-               };
+               throw new InvalidOperationException(
+                   $"Notification preferences not found for user {userId}");
     }
 }

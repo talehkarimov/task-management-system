@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NotificationService.Application.Interfaces;
 using NotificationService.Infrastructure.Channels;
+using NotificationService.Infrastructure.Email;
 using NotificationService.Infrastructure.Messaging;
 using NotificationService.Infrastructure.Persistence;
 using NotificationService.Infrastructure.Repositories;
@@ -23,6 +24,12 @@ public static class DependencyInjection
         services.AddScoped<INotificationDeliveryRepository, NotificationDeliveryRepository>();
         services.AddScoped<INotificationPreferenceProvider, UserNotificationPreferenceProvider>();
         services.AddScoped<INotificationChannelSender, InAppNotificationSender>();
+
+        services.Configure<EmailSettings>(configuration.GetSection("Email"));
+
+        services.AddScoped<IEmailSender, SmtpEmailSender>();
+        services.AddScoped<EmailTemplateResolver>();
+        services.AddScoped<INotificationChannelSender, EmailNotificationSender>();
         return services;
     }
 }
