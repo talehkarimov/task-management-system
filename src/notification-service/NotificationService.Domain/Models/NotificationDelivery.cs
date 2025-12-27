@@ -4,13 +4,29 @@ namespace NotificationService.Domain.Models;
 
 public sealed class NotificationDelivery
 {
-    public Guid Id { get; private set; }
-    public Guid NotificationId { get; private set; }
+    public Guid Id { get; set; }
+    public Guid NotificationId { get; set; }
 
-    public NotificationChannel Channel { get; private set; }
-    public DeliveryStatus Status { get; private set; }
+    public NotificationChannel Channel { get; set; }
+    public DeliveryStatus Status { get; set; }
 
-    public int AttemptCount { get; private set; }
-    public DateTime? LastAttemptAt { get; private set; }
-    public string? FailureReason { get; private set; }
+    public int AttemptCount { get; set; }
+    public DateTime? LastAttemptAt { get; set; }
+    public string? FailureReason { get; set; }
+    public DateTime CreatedAt { get; set; }
+
+    public void MarkSucceeded()
+    {
+        Status = DeliveryStatus.Succeeded;
+        AttemptCount++;
+        LastAttemptAt = DateTime.Now;
+        FailureReason = null;
+    }
+    public void MarkFailed(string reason)
+    {
+        Status = DeliveryStatus.Failed;
+        AttemptCount++;
+        LastAttemptAt = DateTime.Now;
+        FailureReason = reason;
+    }
 }

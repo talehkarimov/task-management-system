@@ -4,16 +4,16 @@ namespace NotificationService.Domain.Models;
 
 public sealed class Notification
 {
-    public Guid Id { get; private set; }
-    public Guid UserId { get; private set; }
+    public Guid Id { get; set; }
+    public Guid UserId { get; set; }
 
-    public string Type { get; private set; }
-    public string Payload { get; private set; }
+    public string Type { get;  set; } = null!;
+    public string Payload { get; set; } = null!;
 
-    public NotificationStatus Status { get; private set; }
+    public NotificationStatus Status { get; set; }
 
-    public DateTime CreatedAt { get; private set; }
-    public DateTime? ReadAt { get; private set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? ReadAt { get; set; }
 
     public void MarkAsRead()
     {
