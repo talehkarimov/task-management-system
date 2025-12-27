@@ -14,13 +14,4 @@ public sealed class Notification
 
     public DateTime CreatedAt { get; set; }
     public DateTime? ReadAt { get; set; }
-
-    public void MarkAsRead()
-    {
-        if (Status == NotificationStatus.Read)
-            return;
-
-        Status = NotificationStatus.Read;
-        ReadAt = DateTime.Now;
-    }
 }

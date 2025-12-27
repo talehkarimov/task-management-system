@@ -21,4 +21,29 @@ public sealed class UserNotificationPreferenceProvider(NotificationDbContext con
                throw new InvalidOperationException(
                    $"Notification preferences not found for user {userId}");
     }
+
+    public Task SaveAsync(Guid userId, string email, bool emailEnabled, bool inAppEnabled)
+    {
+        var existingPreference = context.UserNotificationPreferences
+            .FirstOrDefault(p => p.UserId == userId);
+        if (existingPreference is not null)
+        {
+            existingPreference.Email = email;
+            existingPreference.EmailEnabled = emailEnabled;
+            existingPreference.InAppEnabled = inAppEnabled;
+        }
+        else
+        {
+            var preference = new UserNotificationPreference
+            {
+                UserId = userId,
+                Email = email,
+                EmailEnabled = emailEnabled,
+                InAppEnabled = inAppEnabled
+            };
+            context.UserNotificationPreferences.Add(preference);
+        }
+        
+        return context.SaveChangesAsync();
+    }
 }
