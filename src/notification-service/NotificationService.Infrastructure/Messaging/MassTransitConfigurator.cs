@@ -24,6 +24,7 @@ public static class MassTransitConfigurator
             {
                 cfg.Host(new Uri(
                             "amqps://fxfusnbm:qhlEeivcfYNni6tk5NFDN8Vsq1Kn18sE@campbell.lmq.cloudamqp.com/fxfusnbm"));
+                cfg.ConfigureEndpoints(context);
             });
         });
 
