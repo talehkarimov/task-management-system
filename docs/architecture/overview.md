@@ -9,9 +9,9 @@ Each service:
 - Exposes functionality via HTTP APIs and events
 
 ## Core Components
-- API Gateway – entry point for clients
-- Identity Service – authentication and authorization
-- Task Service – core business logic
+- API Gateway â€“ entry point for clients
+- Identity Service â€“ authentication and authorization
+- Task Service â€“ core business logic
 - Supporting services (Project, Notification, Audit)
 
 ## Communication
@@ -21,3 +21,8 @@ Each service:
 ## Environment
 - Local development using Docker and Docker Compose
 - Cloud-agnostic design
+
+## Reliability
+Asynchronous communication is implemented using the Outbox pattern to ensure
+reliable event publishing and avoid dual-write problems between the database
+and message broker.
