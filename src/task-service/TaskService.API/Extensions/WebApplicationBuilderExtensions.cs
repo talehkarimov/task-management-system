@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using TaskService.Application.Behaviors;
 using TaskService.Application.Commands;
+using TaskService.Application.Events.Mapping;
 using TaskService.Application.Interfaces;
 using TaskService.Application.Validators;
 using TaskService.Infrastructure.Caching;
@@ -22,7 +23,7 @@ namespace TaskService.API.Extensions
             builder.Services.AddHealthChecks()
                 .AddDbContextCheck<TaskDbContext>(
                     name: "db")
-                .AddCheck<TaskService.Infrastructure.Health.OutboxHealthCheck>(
+                .AddCheck<Infrastructure.Health.OutboxHealthCheck>(
                     name: "outbox");
             builder.Services.AddMassTransit(x =>
             {
@@ -68,7 +69,7 @@ namespace TaskService.API.Extensions
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<IRequestContext, Context.HttpRequestContext>();
-
+            builder.Services.AddScoped<IIntegrationEventMapper, IntegrationEventMapper>();
 
             return builder;
         }

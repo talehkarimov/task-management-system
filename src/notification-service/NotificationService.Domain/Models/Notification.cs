@@ -7,7 +7,7 @@ public sealed class Notification
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
 
-    public string Type { get;  set; } = null!;
+    public NotificationType Type { get;  set; }
     public string Payload { get; set; } = null!;
 
     public NotificationStatus Status { get; set; }
