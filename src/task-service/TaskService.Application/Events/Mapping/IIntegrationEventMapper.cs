@@ -1,4 +1,4 @@
-﻿using TaskService.Application.Events.IntegrationEvents;
+﻿using Common.Messaging.IntegrationEvents.TaskService;
 
 namespace TaskService.Application.Events.Mapping;
 

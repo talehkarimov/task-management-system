@@ -1,4 +1,4 @@
-﻿namespace NotificationService.Contracts.IntegrationEvents;
+﻿namespace Common.Messaging.IntegrationEvents.TaskService;
 
 public sealed record TaskCommentAddedIntegrationEventV1(
     Guid EventId,

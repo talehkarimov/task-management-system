@@ -1,7 +1,7 @@
 ﻿using MassTransit;
 using NotificationService.Application.Interfaces;
 using NotificationService.Application.Models;
-using NotificationService.Contracts.IntegrationEvents;
+using Common.Messaging.IntegrationEvents.TaskService;
 using NotificationService.Domain.Enums;
 
 namespace NotificationService.Infrastructure.Consumers;

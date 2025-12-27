@@ -19,8 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\building-blocks\Common\Common.csproj" />
     <ProjectReference Include="..\NotificationService.Application\NotificationService.Application.csproj" />
-    <ProjectReference Include="..\NotificationService.Contracts\NotificationService.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

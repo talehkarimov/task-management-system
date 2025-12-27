@@ -1,4 +1,4 @@
-﻿namespace TaskService.Application.Events.IntegrationEvents;
+﻿namespace Common.Messaging.IntegrationEvents.TaskService;
 
 public sealed record TaskStatusChangedIntegrationEventV1(
     Guid EventId,

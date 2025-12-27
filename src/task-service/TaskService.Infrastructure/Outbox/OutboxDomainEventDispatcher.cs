@@ -14,7 +14,7 @@ public sealed class OutboxDomainEventDispatcher(TaskDbContext dbContext, IReques
         var outboxMessage = new OutboxMessage
         {
             Id = integrationEvent.EventId,
-            Type = integrationEvent.GetType().Name,
+            Type = integrationEvent.GetType().AssemblyQualifiedName!,
             Payload = JsonSerializer.Serialize(
                 integrationEvent,
                 integrationEvent.GetType()),
