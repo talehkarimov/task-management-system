@@ -1,9 +1,10 @@
+using Common.Logging;
 using TaskService.API.Extensions;
 using TaskService.API.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.RegisterSerilog();
+builder.UseCommonSerilog();
 builder.RegisterServices();
 
 builder.Services.AddControllers();

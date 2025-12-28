@@ -3,6 +3,7 @@ using NotificationService.Application.Interfaces;
 using NotificationService.Application.Models;
 using Common.Messaging.IntegrationEvents.TaskService;
 using NotificationService.Domain.Enums;
+using LogContext = Serilog.Context.LogContext;
 
 namespace NotificationService.Infrastructure.Consumers;
 
@@ -10,17 +11,25 @@ public sealed class TaskAssignedConsumer(INotificationDispatcherService dispatch
 {
     public async Task Consume(ConsumeContext<TaskAssignedIntegrationEventV1> context)
     {
-        var intent = new NotificationIntent
+        using (LogContext.PushProperty("IntegrationEvent", nameof(TaskAssignedIntegrationEventV1)))
+        using (LogContext.PushProperty("EventId", context.Message.EventId))
+        using (LogContext.PushProperty("CorrelationId", context.CorrelationId))
+        using (LogContext.PushProperty("UserId", context.Message.ChangedByUserId))
         {
-            RecipientUserId = context.Message.AssigneeUserId,
-            NotificationType = NotificationType.TaskAssigned,
-            Payload = new Dictionary<string, string>
-            {
-                { "TaskId", context.Message.TaskId.ToString() },
-                { "ChangedByUserId", context.Message.ChangedByUserId.ToString() }
-            }
-        };
+            Serilog.Log.Information("TaskAssignedIntegrationEvent received");
 
-        await dispatcherService.DispatchAsync(intent, context.CancellationToken);
+            var intent = new NotificationIntent
+            {
+                RecipientUserId = context.Message.AssigneeUserId,
+                NotificationType = NotificationType.TaskAssigned,
+                Payload = new Dictionary<string, string>
+                {
+                    { "TaskId", context.Message.TaskId.ToString() },
+                    { "ChangedByUserId", context.Message.ChangedByUserId.ToString() }
+                }
+            };
+            await dispatcherService.DispatchAsync(intent, context.CancellationToken);
+        }
     }
+
 }

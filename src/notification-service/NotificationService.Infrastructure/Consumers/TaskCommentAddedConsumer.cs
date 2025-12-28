@@ -3,6 +3,7 @@ using NotificationService.Application.Interfaces;
 using NotificationService.Application.Models;
 using Common.Messaging.IntegrationEvents.TaskService;
 using NotificationService.Domain.Enums;
+using LogContext = Serilog.Context.LogContext;
 
 namespace NotificationService.Infrastructure.Consumers;
 
@@ -10,16 +11,24 @@ public sealed class TaskCommentAddedConsumer(INotificationDispatcherService disp
 {
     public async Task Consume(ConsumeContext<TaskCommentAddedIntegrationEventV1> context)
     {
-        var intent = new NotificationIntent
+        using (LogContext.PushProperty("IntegrationEvent", nameof(TaskCommentAddedIntegrationEventV1)))
+        using (LogContext.PushProperty("EventId", context.Message.EventId))
+        using (LogContext.PushProperty("CorrelationId", context.CorrelationId))
+        using (LogContext.PushProperty("UserId", context.Message.CommentedByUserId))
         {
-            RecipientUserId = context.Message.CommentedByUserId,
-            NotificationType = NotificationType.TaskCommentAdded,
-            Payload = new Dictionary<string, string>
+            Serilog.Log.Information("TaskCommentAddedIntegrationEvent received");
+            var intent = new NotificationIntent
             {
-                ["TaskId"] = context.Message.TaskId.ToString()
-            }
-        };
+                RecipientUserId = context.Message.CommentedByUserId,
+                NotificationType = NotificationType.TaskCommentAdded,
+                Payload = new Dictionary<string, string>
+                {
+                    ["TaskId"] = context.Message.TaskId.ToString()
+                }
+            };
 
-        await dispatcherService.DispatchAsync(intent, context.CancellationToken);
+            await dispatcherService.DispatchAsync(intent, context.CancellationToken);
+        }
+        
     }
 }

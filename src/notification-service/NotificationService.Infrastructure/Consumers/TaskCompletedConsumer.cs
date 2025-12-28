@@ -3,6 +3,7 @@ using NotificationService.Application.Interfaces;
 using NotificationService.Application.Models;
 using Common.Messaging.IntegrationEvents.TaskService;
 using NotificationService.Domain.Enums;
+using LogContext = Serilog.Context.LogContext;
 
 namespace NotificationService.Infrastructure.Consumers;
 
@@ -10,16 +11,23 @@ public sealed class TaskCompletedConsumer(INotificationDispatcherService dispatc
 {
     public async Task Consume(ConsumeContext<TaskCompletedIntegrationEventV1> context)
     {
-        var intent = new NotificationIntent
+        using (LogContext.PushProperty("IntegrationEvent", nameof(TaskCompletedIntegrationEventV1)))
+        using (LogContext.PushProperty("EventId", context.Message.EventId))
+        using (LogContext.PushProperty("CorrelationId", context.CorrelationId))
+        using (LogContext.PushProperty("UserId", context.Message.CompletedByUserId))
         {
-            RecipientUserId = context.Message.CompletedByUserId,
-            NotificationType = NotificationType.TaskCompleted,
-            Payload = new Dictionary<string, string>
+            Serilog.Log.Information("TaskCompletedIntegrationEvent received");
+            var intent = new NotificationIntent
             {
-                ["TaskId"] = context.Message.TaskId.ToString()
-            }
-        };
+                RecipientUserId = context.Message.CompletedByUserId,
+                NotificationType = NotificationType.TaskCompleted,
+                Payload = new Dictionary<string, string>
+                {
+                    ["TaskId"] = context.Message.TaskId.ToString()
+                }
+            };
 
-        await dispatcherService.DispatchAsync(intent, context.CancellationToken);
+            await dispatcherService.DispatchAsync(intent, context.CancellationToken);
+        }
     }
 }

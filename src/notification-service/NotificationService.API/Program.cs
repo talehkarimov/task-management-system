@@ -1,3 +1,4 @@
+using Common.Logging;
 using NotificationService.Application;
 using NotificationService.Application.Commands;
 using NotificationService.Infrastructure;
@@ -8,12 +9,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+builder.UseCommonSerilog();
+
 builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssemblyContaining<UpdateNotificationPreferencesCommand>());
+
 builder.Services.AddApplicationServices();
+
 builder.Services.AddInfrastructureServices(builder.Configuration);  
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

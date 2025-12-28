@@ -3,63 +3,111 @@ using NotificationService.Application.Models;
 using NotificationService.Domain.Enums;
 using NotificationService.Domain.Models;
 using System.Text.Json;
-
+using Serilog;
+using LogContext = Serilog.Context.LogContext;
 namespace NotificationService.Application.Services;
 
-public sealed class NotificationDispatcherService(INotificationRepository notificationRepository,
-        INotificationDeliveryRepository deliveryRepository,
-        INotificationPreferenceProvider preferenceProvider,
-        IEnumerable<INotificationChannelSender> channelSenders) : INotificationDispatcherService
+public sealed class NotificationDispatcherService(
+    INotificationRepository notificationRepository,
+    INotificationDeliveryRepository deliveryRepository,
+    INotificationPreferenceProvider preferenceProvider,
+    IEnumerable<INotificationChannelSender> channelSenders)
+    : INotificationDispatcherService
 {
-    public async Task DispatchAsync(NotificationIntent intent, CancellationToken cancellationToken)
+    public async Task DispatchAsync(
+        NotificationIntent intent,
+        CancellationToken cancellationToken)
     {
-        var preferences = await preferenceProvider.GetAsync(intent.RecipientUserId, cancellationToken);
-        var notification = new Notification
+        using (LogContext.PushProperty("RecipientUserId", intent.RecipientUserId))
+        using (LogContext.PushProperty("NotificationType", intent.NotificationType))
         {
-            UserId = intent.RecipientUserId,
-            Type =  intent.NotificationType,
-            Payload =  JsonSerializer.Serialize(intent.Payload),
-            CreatedAt = DateTime.Now
-        };
-        await notificationRepository.AddAsync(notification, cancellationToken);
+            var preferences =
+                await preferenceProvider.GetAsync(
+                    intent.RecipientUserId,
+                    cancellationToken);
 
-        var enabledChannels = ResolveChannels(preferences);
-
-        foreach (var sender in channelSenders.Where(s => enabledChannels.Contains(s.Channel)))
-        {
-            var delivery = new NotificationDelivery
+            var notification = new Notification
             {
-                NotificationId = notification.Id,
-                Channel = sender.Channel,
-                Status = DeliveryStatus.Pending,
-                CreatedAt = DateTime.Now
+                UserId = intent.RecipientUserId,
+                Type = intent.NotificationType,
+                Payload = JsonSerializer.Serialize(intent.Payload),
+                CreatedAt = DateTime.UtcNow,
+                Status = NotificationStatus.Unread
             };
 
-            await deliveryRepository.AddAsync(delivery, cancellationToken);
+            await notificationRepository.AddAsync(
+                notification,
+                cancellationToken);
 
-            try
-            {
-                await sender.SendAsync(notification, cancellationToken);
-                delivery.MarkSucceeded();
-            }
-            catch (Exception ex)
-            {
-                delivery.MarkFailed(ex.Message);
-            }
+            Log.Information(
+                "Notification created with Id {NotificationId}",
+                notification.Id);
 
-            await deliveryRepository.UpdateAsync(delivery, cancellationToken);
+            var enabledChannels = ResolveChannels(preferences);
+
+            Log.Information(
+                "Resolved notification channels: {Channels}",
+                enabledChannels);
+
+            foreach (var sender in channelSenders
+                .Where(s => enabledChannels.Contains(s.Channel)))
+            {
+                using (LogContext.PushProperty("Channel", sender.Channel))
+                {
+                    var delivery = new NotificationDelivery
+                    {
+                        NotificationId = notification.Id,
+                        Channel = sender.Channel,
+                        Status = DeliveryStatus.Pending,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    await deliveryRepository.AddAsync(
+                        delivery,
+                        cancellationToken);
+
+                    try
+                    {
+                        Log.Information(
+                            "Sending notification via channel");
+
+                        await sender.SendAsync(
+                            notification,
+                            cancellationToken);
+
+                        delivery.MarkSucceeded();
+
+                        Log.Information(
+                            "Notification delivered successfully");
+                    }
+                    catch (Exception ex)
+                    {
+                        delivery.MarkFailed(ex.Message);
+
+                        Log.Error(
+                            ex,
+                            "Notification delivery failed");
+                    }
+
+                    await deliveryRepository.UpdateAsync(
+                        delivery,
+                        cancellationToken);
+                }
+            }
         }
     }
 
-    private IEnumerable<NotificationChannel> ResolveChannels(UserNotificationPreference preference)
+    private IEnumerable<NotificationChannel> ResolveChannels(
+        UserNotificationPreference preference)
     {
-        var chanels = new List<NotificationChannel>()
+        var channels = new List<NotificationChannel>
         {
             NotificationChannel.InApp
         };
 
-        if(preference.EmailEnabled)
-            chanels.Add(NotificationChannel.Email);
-        return chanels;
+        if (preference.EmailEnabled)
+            channels.Add(NotificationChannel.Email);
+
+        return channels;
     }
 }
