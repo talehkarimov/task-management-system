@@ -1,4 +1,5 @@
-﻿using Serilog.Context;
+﻿using Common.Logging.Observability;
+using Serilog.Context;
 using System.Diagnostics;
 using TaskService.API.Middlewares;
 using TaskService.Application.Common;
@@ -15,9 +16,11 @@ public sealed class RequestLoggingMiddleware
         var sw = Stopwatch.StartNew();
         var correlationId = context.Items[CorrelationIdMiddleware.HeaderName]?.ToString();
 
+        using (LogContext.PushProperty(LogKeys.Component, "API"))
+        using (LogContext.PushProperty(LogKeys.OperationName, "HttpRequest"))
         using (LogContext.PushProperty(LogKeys.CorrelationId, correlationId))
-        using (LogContext.PushProperty("HttpMethod", context.Request.Method))
-        using (LogContext.PushProperty("HttpPath", context.Request.Path.Value))
+        using (LogContext.PushProperty(LogKeys.HttpMethod, context.Request.Method))
+        using (LogContext.PushProperty(LogKeys.HttpPath, context.Request.Path.Value))
         {
             try
             {
@@ -25,7 +28,8 @@ public sealed class RequestLoggingMiddleware
 
                 sw.Stop();
                 using (LogContext.PushProperty(LogKeys.ElapsedMs, sw.ElapsedMilliseconds))
-                using (LogContext.PushProperty("StatusCode", context.Response.StatusCode))
+                using (LogContext.PushProperty(LogKeys.StatusCode, context.Response.StatusCode))
+                using (LogContext.PushProperty(LogKeys.Outcome, LogOutcome.Success))
                 {
                     Serilog.Log.Information("HTTP request completed");
                 }
@@ -34,6 +38,7 @@ public sealed class RequestLoggingMiddleware
             {
                 sw.Stop();
                 using (LogContext.PushProperty(LogKeys.ElapsedMs, sw.ElapsedMilliseconds))
+                using (LogContext.PushProperty(LogKeys.Outcome, LogOutcome.Failure))
                 {
                     Serilog.Log.Error(ex, "HTTP request failed");
                 }

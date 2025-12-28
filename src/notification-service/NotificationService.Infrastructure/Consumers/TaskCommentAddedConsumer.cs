@@ -1,22 +1,33 @@
-﻿using MassTransit;
+using Common.Logging.Observability;
+using Common.Messaging.IntegrationEvents.TaskService;
+using MassTransit;
 using NotificationService.Application.Interfaces;
 using NotificationService.Application.Models;
-using Common.Messaging.IntegrationEvents.TaskService;
 using NotificationService.Domain.Enums;
 using LogContext = Serilog.Context.LogContext;
 
 namespace NotificationService.Infrastructure.Consumers;
 
-public sealed class TaskCommentAddedConsumer(INotificationDispatcherService dispatcherService) : IConsumer<TaskCommentAddedIntegrationEventV1>
+public sealed class TaskCommentAddedConsumer(INotificationDispatcherService dispatcherService)
+    : IConsumer<TaskCommentAddedIntegrationEventV1>
 {
     public async Task Consume(ConsumeContext<TaskCommentAddedIntegrationEventV1> context)
     {
-        using (LogContext.PushProperty("IntegrationEvent", nameof(TaskCommentAddedIntegrationEventV1)))
-        using (LogContext.PushProperty("EventId", context.Message.EventId))
-        using (LogContext.PushProperty("CorrelationId", context.CorrelationId))
-        using (LogContext.PushProperty("UserId", context.Message.CommentedByUserId))
+        var correlationId = ConsumerObservability.ResolveCorrelationId(context);
+        var outboxMessageId = ConsumerObservability.ResolveOutboxMessageId(context);
+        var operationName = $"Consume:{nameof(TaskCommentAddedIntegrationEventV1)}";
+
+        using (LogContext.PushProperty(LogPropertyKeys.Component, "Consumer"))
+        using (LogContext.PushProperty(LogPropertyKeys.OperationName, operationName))
+        using (LogContext.PushProperty(LogPropertyKeys.EventType, nameof(TaskCommentAddedIntegrationEventV1)))
+        using (LogContext.PushProperty(LogPropertyKeys.EventId, context.Message.EventId))
+        using (LogContext.PushProperty(LogPropertyKeys.MessageId, context.MessageId))
+        using (LogContext.PushProperty(LogPropertyKeys.OutboxMessageId, outboxMessageId))
+        using (LogContext.PushProperty(LogPropertyKeys.CorrelationId, correlationId))
+        using (LogContext.PushProperty(LogPropertyKeys.UserId, context.Message.CommentedByUserId))
         {
             Serilog.Log.Information("TaskCommentAddedIntegrationEvent received");
+
             var intent = new NotificationIntent
             {
                 RecipientUserId = context.Message.CommentedByUserId,
@@ -27,8 +38,23 @@ public sealed class TaskCommentAddedConsumer(INotificationDispatcherService disp
                 }
             };
 
-            await dispatcherService.DispatchAsync(intent, context.CancellationToken);
+            try
+            {
+                await dispatcherService.DispatchAsync(intent, context.CancellationToken);
+
+                using (LogContext.PushProperty(LogPropertyKeys.Outcome, LogOutcome.Success))
+                {
+                    Serilog.Log.Information("Integration event processed");
+                }
+            }
+            catch (Exception ex)
+            {
+                using (LogContext.PushProperty(LogPropertyKeys.Outcome, LogOutcome.Failure))
+                {
+                    Serilog.Log.Error(ex, "Integration event processing failed");
+                }
+                throw;
+            }
         }
-        
     }
 }

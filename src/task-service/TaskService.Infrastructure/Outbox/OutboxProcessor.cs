@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Text.Json;
+using Common.Logging.Observability;
 using TaskService.Application.Common;
 using TaskService.Infrastructure.Persistence;
 using LogContext = Serilog.Context.LogContext;
@@ -34,6 +35,10 @@ public sealed class OutboxProcessor(IServiceProvider serviceProvider) : Backgrou
 
             foreach (var message in messages)
             {
+                var operationName = "PublishIntegrationEvent";
+
+                using (LogContext.PushProperty(LogKeys.Component, "Outbox"))
+                using (LogContext.PushProperty(LogKeys.OperationName, operationName))
                 using (LogContext.PushProperty(LogKeys.OutboxMessageId, message.Id))
                 using (LogContext.PushProperty(LogKeys.EventType, message.Type))
                 using (LogContext.PushProperty(LogKeys.CorrelationId, message.CorrelationId))
@@ -61,28 +66,34 @@ public sealed class OutboxProcessor(IServiceProvider serviceProvider) : Backgrou
 
                         await bus.Publish(domainEvent, publishContext =>
                         {
-                            publishContext.Headers.Set("X-Outbox-Message-Id", message.Id.ToString());
-                            publishContext.Headers.Set("X-Correlation-Id", message.CorrelationId);
+                            publishContext.Headers.Set(HeaderNames.OutboxMessageId, message.Id.ToString());
+                            publishContext.Headers.Set(HeaderNames.CorrelationId, message.CorrelationId);
 
                             if (message.UserId.HasValue)
-                                publishContext.Headers.Set("X-User-Id", message.UserId.Value.ToString());
-                            
+                                publishContext.Headers.Set(HeaderNames.UserId, message.UserId.Value.ToString());
+
                             if (message.OrganizationId.HasValue)
-                                publishContext.Headers.Set("X-Org-Id", message.OrganizationId.Value.ToString());
+                                publishContext.Headers.Set(HeaderNames.OrganizationId, message.OrganizationId.Value.ToString());
 
                         }, stoppingToken);
 
                         message.ProcessedAt = DateTime.Now;
                         message.LastError = null;
 
-                        Serilog.Log.Information("Outbox message published successfully");
+                        using (LogContext.PushProperty(LogKeys.Outcome, LogOutcome.Success))
+                        {
+                            Serilog.Log.Information("Outbox message published successfully");
+                        }
                     }
                     catch (Exception ex)
                     {
                         message.AttemptCount++;
                         message.LastError = ex.Message;
 
-                        Serilog.Log.Error(ex, "Outbox message publish failed");
+                        using (LogContext.PushProperty(LogKeys.Outcome, LogOutcome.Failure))
+                        {
+                            Serilog.Log.Error(ex, "Outbox message publish failed");
+                        }
 
                         await Task.Delay(
                            OutboxPolicy.FailureBackoffMs,
@@ -100,7 +111,15 @@ public sealed class OutboxProcessor(IServiceProvider serviceProvider) : Backgrou
         message.AttemptCount = OutboxPolicy.MaxAttempts;
         message.LastError = reason;
 
-        Serilog.Log.Fatal(
-            "Outbox message poisoned and will no longer be retried");
+        using (LogContext.PushProperty(LogKeys.Component, "Outbox"))
+        using (LogContext.PushProperty(LogKeys.OperationName, "PublishIntegrationEvent"))
+        using (LogContext.PushProperty(LogKeys.Outcome, LogOutcome.Poisoned))
+        using (LogContext.PushProperty(LogKeys.OutboxMessageId, message.Id))
+        using (LogContext.PushProperty(LogKeys.EventType, message.Type))
+        using (LogContext.PushProperty(LogKeys.CorrelationId, message.CorrelationId))
+        {
+            Serilog.Log.Fatal(
+                "Outbox message poisoned and will no longer be retried");
+        }
     }
 }

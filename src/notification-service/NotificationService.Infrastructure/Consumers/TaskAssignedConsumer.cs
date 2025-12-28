@@ -3,6 +3,7 @@ using NotificationService.Application.Interfaces;
 using NotificationService.Application.Models;
 using Common.Messaging.IntegrationEvents.TaskService;
 using NotificationService.Domain.Enums;
+using Common.Logging.Observability;
 using LogContext = Serilog.Context.LogContext;
 
 namespace NotificationService.Infrastructure.Consumers;
@@ -11,10 +12,18 @@ public sealed class TaskAssignedConsumer(INotificationDispatcherService dispatch
 {
     public async Task Consume(ConsumeContext<TaskAssignedIntegrationEventV1> context)
     {
-        using (LogContext.PushProperty("IntegrationEvent", nameof(TaskAssignedIntegrationEventV1)))
-        using (LogContext.PushProperty("EventId", context.Message.EventId))
-        using (LogContext.PushProperty("CorrelationId", context.CorrelationId))
-        using (LogContext.PushProperty("UserId", context.Message.ChangedByUserId))
+        var correlationId = ConsumerObservability.ResolveCorrelationId(context);
+        var outboxMessageId = ConsumerObservability.ResolveOutboxMessageId(context);
+        var operationName = $"Consume:{nameof(TaskAssignedIntegrationEventV1)}";
+
+        using (LogContext.PushProperty(LogPropertyKeys.Component, "Consumer"))
+        using (LogContext.PushProperty(LogPropertyKeys.OperationName, operationName))
+        using (LogContext.PushProperty(LogPropertyKeys.EventType, nameof(TaskAssignedIntegrationEventV1)))
+        using (LogContext.PushProperty(LogPropertyKeys.EventId, context.Message.EventId))
+        using (LogContext.PushProperty(LogPropertyKeys.MessageId, context.MessageId))
+        using (LogContext.PushProperty(LogPropertyKeys.OutboxMessageId, outboxMessageId))
+        using (LogContext.PushProperty(LogPropertyKeys.CorrelationId, correlationId))
+        using (LogContext.PushProperty(LogPropertyKeys.UserId, context.Message.ChangedByUserId))
         {
             Serilog.Log.Information("TaskAssignedIntegrationEvent received");
 
@@ -28,7 +37,24 @@ public sealed class TaskAssignedConsumer(INotificationDispatcherService dispatch
                     { "ChangedByUserId", context.Message.ChangedByUserId.ToString() }
                 }
             };
-            await dispatcherService.DispatchAsync(intent, context.CancellationToken);
+
+            try
+            {
+                await dispatcherService.DispatchAsync(intent, context.CancellationToken);
+
+                using (LogContext.PushProperty(LogPropertyKeys.Outcome, LogOutcome.Success))
+                {
+                    Serilog.Log.Information("Integration event processed");
+                }
+            }
+            catch (Exception ex)
+            {
+                using (LogContext.PushProperty(LogPropertyKeys.Outcome, LogOutcome.Failure))
+                {
+                    Serilog.Log.Error(ex, "Integration event processing failed");
+                }
+                throw;
+            }
         }
     }
 

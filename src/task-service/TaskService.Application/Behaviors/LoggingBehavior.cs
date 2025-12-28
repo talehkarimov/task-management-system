@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Common.Logging.Observability;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Serilog.Context;
 using System.Diagnostics;
@@ -25,6 +26,8 @@ public sealed class LoggingBehavior<TRequest, TResponse>
         var requestName = typeof(TRequest).Name;
         var sw = Stopwatch.StartNew();
 
+        using (LogContext.PushProperty(LogKeys.Component, "Application"))
+        using (LogContext.PushProperty(LogKeys.OperationName, requestName))
         using (LogContext.PushProperty(LogKeys.RequestName, requestName))
         using (LogContext.PushProperty(LogKeys.CorrelationId, _context.CorrelationId))
         using (LogContext.PushProperty(LogKeys.UserId, _context.UserId))
@@ -38,6 +41,7 @@ public sealed class LoggingBehavior<TRequest, TResponse>
                 sw.Stop();
 
                 using (LogContext.PushProperty(LogKeys.ElapsedMs, sw.ElapsedMilliseconds))
+                using (LogContext.PushProperty(LogKeys.Outcome, LogOutcome.Success))
                 {
                     Serilog.Log.Information("Request handled");
                 }
@@ -48,6 +52,7 @@ public sealed class LoggingBehavior<TRequest, TResponse>
             {
                 sw.Stop();
                 using (LogContext.PushProperty(LogKeys.ElapsedMs, sw.ElapsedMilliseconds))
+                using (LogContext.PushProperty(LogKeys.Outcome, LogOutcome.Failure))
                 {
                     Serilog.Log.Error(ex, "Request failed");
                 }
