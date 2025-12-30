@@ -8,6 +8,7 @@ using Common.Logging.Observability;
 using TaskService.Application.Common;
 using TaskService.Infrastructure.Persistence;
 using LogContext = Serilog.Context.LogContext;
+using BuildingBlocks.Common.Policies;
 
 namespace TaskService.Infrastructure.Outbox;
 

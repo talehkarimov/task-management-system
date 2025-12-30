@@ -46,6 +46,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "building-blocks", "building
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "src\building-blocks\Common\Common.csproj", "{C167747E-AA1E-4A31-85F9-1FB6A92C3902}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "audit-service", "audit-service", "{4068E7BD-D877-4074-B1D4-30F48D93BC5D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuditService.API", "src\audit-service\AuditService.API\AuditService.API.csproj", "{4E085F2A-5008-49ED-9C7D-7DFD54B738AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -88,6 +92,10 @@ Global
 		{C167747E-AA1E-4A31-85F9-1FB6A92C3902}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C167747E-AA1E-4A31-85F9-1FB6A92C3902}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C167747E-AA1E-4A31-85F9-1FB6A92C3902}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E085F2A-5008-49ED-9C7D-7DFD54B738AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E085F2A-5008-49ED-9C7D-7DFD54B738AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E085F2A-5008-49ED-9C7D-7DFD54B738AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E085F2A-5008-49ED-9C7D-7DFD54B738AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -108,6 +116,8 @@ Global
 		{BF9745EB-CCC0-43E9-B5E6-ADDE9FAD68C1} = {80446DC9-557E-4051-8B33-359B04CDC73A}
 		{044F19EC-A594-4733-AC0B-44429C06427E} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{C167747E-AA1E-4A31-85F9-1FB6A92C3902} = {044F19EC-A594-4733-AC0B-44429C06427E}
+		{4068E7BD-D877-4074-B1D4-30F48D93BC5D} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{4E085F2A-5008-49ED-9C7D-7DFD54B738AE} = {4068E7BD-D877-4074-B1D4-30F48D93BC5D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3970F94A-EBAA-477F-B72C-E12E1DF6C488}

@@ -1,4 +1,4 @@
-﻿namespace TaskService.API.Health;
+﻿namespace Common.Constants;
 
 public static class HealthCheckTags
 {

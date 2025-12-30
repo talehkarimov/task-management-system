@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using RabbitMQ.Client;
+﻿using Common.Constants;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace NotificationService.API.Health;
+namespace Common.Extensions;
 
 public static class HealthCheckExtensions
 {
@@ -9,7 +10,7 @@ public static class HealthCheckExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var healthChecksBuilder = services.AddHealthChecks()
+        services.AddHealthChecks()
 
             .AddCheck(
                 "self",

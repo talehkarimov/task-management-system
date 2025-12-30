@@ -1,5 +1,4 @@
-﻿namespace TaskService.Infrastructure.Outbox;
-
+﻿namespace BuildingBlocks.Common.Policies;
 public static class OutboxPolicy
 {
     public const int MaxAttempts = 10;

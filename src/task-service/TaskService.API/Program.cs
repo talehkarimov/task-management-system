@@ -1,8 +1,8 @@
 using Common.Logging;
+using Common.Extensions;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using TaskService.API.Extensions;
-using TaskService.API.Health;
-using TaskService.API.Middlewares;
+using Common.Constants;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,21 +17,6 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-app.UseMiddleware<CorrelationIdMiddleware>();
-app.UseMiddleware<RequestLoggingMiddleware>();
-
-app.UseGlobalExceptionHandling();
-
-app.MapHealthChecks("/health/live", new HealthCheckOptions
-{
-    Predicate = check => check.Tags.Contains(HealthCheckTags.Live)
-});
-
-app.MapHealthChecks("/health/ready", new HealthCheckOptions
-{
-    Predicate = check => check.Tags.Contains(HealthCheckTags.Ready)
-});
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -39,9 +24,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseGlobalExceptionHandling();
+
 app.UseAuthorization();
+    
+app.UseCommonHttpObservabilityAndHealthCheck();
 
 app.MapControllers();
-app.MapHealthChecks("/health");
 
 app.Run();

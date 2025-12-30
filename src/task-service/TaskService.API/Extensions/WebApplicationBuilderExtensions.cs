@@ -70,7 +70,7 @@ namespace TaskService.API.Extensions
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<IRequestContext, Context.HttpRequestContext>();
             builder.Services.AddScoped<IIntegrationEventMapper, IntegrationEventMapper>();
-
+            builder.Services.AddScoped<IOutboxDiagnosticsRepository, OutboxDiagnosticsRepository>();
             return builder;
         }
     }
