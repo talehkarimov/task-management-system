@@ -1,5 +1,7 @@
-﻿using AuditService.Infrastructure.Messaging;
+﻿using AuditService.Application.Interfaces;
+using AuditService.Infrastructure.Messaging;
 using AuditService.Infrastructure.Persistence;
+using AuditService.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +17,7 @@ public static class DependencyInjection
         services.AddDbContext<AuditDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
         services.AddMessaging(configuration);
+        services.AddScoped<IAuditReadRepository, AuditReadRepository>();
         return services;
     }
 }

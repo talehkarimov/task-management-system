@@ -1,5 +1,5 @@
+using AuditService.Application.Queries;
 using AuditService.Infrastructure;
-using Common.Constants;
 using Common.Extensions;
 using Common.Logging;
 
@@ -13,6 +13,8 @@ builder.Services.AddControllers();
 builder.UseCommonSerilog();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddServiceHealthChecks(builder.Configuration);
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssemblyContaining<GetAuditByEntityQuery>());
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

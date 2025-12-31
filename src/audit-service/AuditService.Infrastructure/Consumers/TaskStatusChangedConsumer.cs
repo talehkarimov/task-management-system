@@ -4,6 +4,7 @@ using Common.Logging.Observability;
 using Common.Messaging;
 using Common.Messaging.IntegrationEvents.TaskService;
 using MassTransit;
+using Serilog;
 using System.Text.Json;
 using LogContext = Serilog.Context.LogContext;
 namespace AuditService.Infrastructure.Consumers;
@@ -38,8 +39,21 @@ public sealed class TaskStatusChangedConsumer(AuditDbContext dbContext) : IConsu
                                 ?? string.Empty
             };
 
-            dbContext.AuditRecords.Add(record);
-            await dbContext.SaveChangesAsync(context.CancellationToken);
+            try
+            {
+                dbContext.AuditRecords.Add(record);
+                await dbContext.SaveChangesAsync(context.CancellationToken);
+
+                using (LogContext.PushProperty(LogPropertyKeys.Outcome, LogOutcome.Success))
+                    Log.Information("Audit record persisted");
+            }
+            catch (Exception ex)
+            {
+                using (LogContext.PushProperty(LogPropertyKeys.Outcome, LogOutcome.Retry))
+                    Log.Warning(ex, "Audit consume failed, retrying");
+
+                throw;
+            }
         }
     }
 }

@@ -19,10 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\building-blocks\Common\Common.csproj" />
     <ProjectReference Include="..\AuditService.Infrastructure\AuditService.Infrastructure.csproj" />
   </ItemGroup>

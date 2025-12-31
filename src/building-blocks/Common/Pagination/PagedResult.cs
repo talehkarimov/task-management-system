@@ -1,4 +1,4 @@
-﻿namespace TaskService.Application.Common;
+﻿namespace Common.Pagination;
 
 public sealed class PagedResult<T>
 {

@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Common.Pagination;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TaskService.Application.Common;
 using TaskService.Application.Interfaces;

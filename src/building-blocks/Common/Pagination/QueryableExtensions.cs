@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace TaskService.Application.Common;
+namespace Common.Pagination;
 
 public static class QueryableExtensions
 {

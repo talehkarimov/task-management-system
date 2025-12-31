@@ -1,5 +1,5 @@
-﻿using MediatR;
-using TaskService.Application.Common;
+﻿using Common.Pagination;
+using MediatR;
 using TaskService.Application.Queries.Models;
 
 namespace TaskService.Application.Queries;
