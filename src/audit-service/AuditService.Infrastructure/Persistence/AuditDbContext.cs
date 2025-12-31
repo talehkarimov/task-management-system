@@ -29,12 +29,12 @@ public sealed class AuditDbContext(DbContextOptions<AuditDbContext> options)
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(x => x.OccurredAt)
+        builder.Property(x => x.OccurredOn)
             .IsRequired();
 
         builder.HasIndex(x => x.EntityId);
         builder.HasIndex(x => x.CorrelationId);
-        builder.HasIndex(x => x.OccurredAt);
+        builder.HasIndex(x => x.OccurredOn);
 
         base.OnModelCreating(modelBuilder);
     }

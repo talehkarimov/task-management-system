@@ -1,9 +1,10 @@
-﻿using MassTransit;
+﻿using Common.Logging.Observability;
+using Common.Messaging;
+using Common.Messaging.IntegrationEvents.TaskService;
+using MassTransit;
 using NotificationService.Application.Interfaces;
 using NotificationService.Application.Models;
-using Common.Messaging.IntegrationEvents.TaskService;
 using NotificationService.Domain.Enums;
-using Common.Logging.Observability;
 using LogContext = Serilog.Context.LogContext;
 
 namespace NotificationService.Infrastructure.Consumers;

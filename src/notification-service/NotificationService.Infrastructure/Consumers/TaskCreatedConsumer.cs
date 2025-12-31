@@ -5,6 +5,7 @@ using Common.Messaging.IntegrationEvents.TaskService;
 using NotificationService.Domain.Enums;
 using Common.Logging.Observability;
 using LogContext = Serilog.Context.LogContext;
+using Common.Messaging;
 
 namespace NotificationService.Infrastructure.Consumers;
 

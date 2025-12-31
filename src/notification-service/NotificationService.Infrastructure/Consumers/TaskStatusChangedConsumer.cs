@@ -1,4 +1,5 @@
 using Common.Logging.Observability;
+using Common.Messaging;
 using Common.Messaging.IntegrationEvents.TaskService;
 using MassTransit;
 using NotificationService.Application.Interfaces;

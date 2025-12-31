@@ -9,10 +9,9 @@ public sealed class AuditRecord
     public Guid EntityId { get; init; }
 
     public Guid? UserId { get; init; }
-    public Guid? OrganizationId { get; init; }
 
     public string Payload { get; init; } = default!;
-    public DateTime OccurredAt { get; init; }
+    public DateTime OccurredOn { get; init; }
 
     public string CorrelationId { get; init; } = default!;
 }

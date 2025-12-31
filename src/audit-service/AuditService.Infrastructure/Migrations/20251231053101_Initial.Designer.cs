@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AuditService.Infrastructure.Migrations
 {
     [DbContext(typeof(AuditDbContext))]
-    [Migration("20251231051228_Initial")]
+    [Migration("20251231053101_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -44,11 +44,8 @@ namespace AuditService.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<DateTime>("OccurredAt")
+                    b.Property<DateTime>("OccurredOn")
                         .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("OrganizationId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Payload")
                         .IsRequired()
@@ -68,7 +65,7 @@ namespace AuditService.Infrastructure.Migrations
 
                     b.HasIndex("EntityId");
 
-                    b.HasIndex("OccurredAt");
+                    b.HasIndex("OccurredOn");
 
                     b.ToTable("AuditRecords");
                 });

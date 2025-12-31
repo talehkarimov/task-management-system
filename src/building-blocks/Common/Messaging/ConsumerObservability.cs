@@ -1,9 +1,9 @@
 ﻿using Common.Logging.Observability;
 using MassTransit;
 
-namespace NotificationService.Infrastructure.Consumers;
+namespace Common.Messaging;
 
-internal static class ConsumerObservability
+public static class ConsumerObservability
 {
     public static string? ResolveCorrelationId(ConsumeContext context)
     {

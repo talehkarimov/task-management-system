@@ -26,11 +26,12 @@ namespace TaskService.API.Extensions
                     name: "db")
                 .AddCheck<Infrastructure.Health.OutboxHealthCheck>(
                     name: "outbox");
+
             builder.Services.AddMassTransit(x =>
             {
                 x.UsingRabbitMq((context, cfg) =>
                 {
-                    cfg.Host(new Uri(Configuration.HostUri));
+                    cfg.Host(new Uri(builder.Configuration["RabbitMQ:Host"]!));
                 });
             });
 

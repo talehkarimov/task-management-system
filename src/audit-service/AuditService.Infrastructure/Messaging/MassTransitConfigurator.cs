@@ -1,10 +1,10 @@
-﻿using Common.Messaging;
+﻿using AuditService.Infrastructure.Consumers;
+using Common.Messaging;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NotificationService.Infrastructure.Consumers;
 
-namespace NotificationService.Infrastructure.Messaging;
+namespace AuditService.Infrastructure.Messaging;
 
 public static class MassTransitConfigurator
 {

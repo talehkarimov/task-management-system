@@ -20,9 +20,8 @@ namespace AuditService.Infrastructure.Migrations
                     EventType = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     EntityId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    OrganizationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     Payload = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    OccurredAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    OccurredOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CorrelationId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
@@ -41,9 +40,9 @@ namespace AuditService.Infrastructure.Migrations
                 column: "EntityId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AuditRecords_OccurredAt",
+                name: "IX_AuditRecords_OccurredOn",
                 table: "AuditRecords",
-                column: "OccurredAt");
+                column: "OccurredOn");
         }
 
         /// <inheritdoc />
