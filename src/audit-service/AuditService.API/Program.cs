@@ -1,3 +1,4 @@
+using AuditService.Infrastructure;
 using Common.Constants;
 using Common.Extensions;
 using Common.Logging;
@@ -10,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.UseCommonSerilog();
-
+builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddServiceHealthChecks(builder.Configuration);
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

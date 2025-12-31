@@ -12,6 +12,10 @@
 	  <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
 	  <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.22" />
 	  <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="8.0.22" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.22">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -20,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\building-blocks\Common\Common.csproj" />
+    <ProjectReference Include="..\AuditService.Infrastructure\AuditService.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
