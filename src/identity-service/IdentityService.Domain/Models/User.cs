@@ -15,6 +15,8 @@ public sealed class User
     public string LastName { get; set; } = default!;
     [MaxLength(ValidationConstants.StandartInputLength)]
     public string DisplayName { get; set; } = default!;
+    [MaxLength(ValidationConstants.StandartInputLength)]
+    public string PasswordHash { get; set; } = default!;
     public UserStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
 }

@@ -13,12 +13,16 @@ public sealed class IdentityDbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Organization> Organizations { get; set; }
     public DbSet<OrganizationMember> OrganizationMembers { get; set; }
+    public DbSet<OAuthApplication> Applications { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureUser(modelBuilder);
         ConfigureOrganization(modelBuilder);
         ConfigureOrganizationMember(modelBuilder);
+        ConfigureApplication(modelBuilder);
+        ConfigureRefreshToken(modelBuilder);
     }
 
     private static void ConfigureUser(ModelBuilder modelBuilder)
@@ -34,6 +38,9 @@ public sealed class IdentityDbContext
             .IsRequired();
 
         builder.Property(x => x.CreatedAt)
+            .IsRequired();
+
+        builder.Property(x => x.PasswordHash)
             .IsRequired();
     }
 
@@ -67,5 +74,29 @@ public sealed class IdentityDbContext
 
         builder.HasIndex(x => x.UserId);
         builder.HasIndex(x => x.OrganizationId);
+    }
+
+    private static void ConfigureApplication(ModelBuilder modelBuilder)
+    {
+        var b = modelBuilder.Entity<OAuthApplication>();
+        b.HasKey(x => x.Id);
+        b.HasIndex(x => x.ClientId).IsUnique();
+        b.Property(x => x.ClientId).IsRequired().HasMaxLength(100);
+        b.Property(x => x.ClientSecretHash).IsRequired();
+        b.Property(x => x.Name).IsRequired().HasMaxLength(200);
+        b.Property(x => x.RedirectUris).HasMaxLength(2000);
+        b.Property(x => x.IsConfidential).IsRequired();
+        b.Property(x => x.CreatedAt).IsRequired();
+    }
+
+    private static void ConfigureRefreshToken(ModelBuilder modelBuilder)
+    {
+        var b = modelBuilder.Entity<RefreshToken>();
+        b.HasKey(x => x.Id);
+        b.HasIndex(x => x.UserId);
+        b.HasIndex(x => x.ApplicationId);
+        b.Property(x => x.TokenHash).IsRequired().HasMaxLength(200);
+        b.Property(x => x.CreatedAt).IsRequired();
+        b.Property(x => x.ExpiresAt).IsRequired();
     }
 }
